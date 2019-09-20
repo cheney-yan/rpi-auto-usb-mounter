@@ -109,8 +109,8 @@ def auto():
       if mount_point in existing_mounts:
         if existing_mounts[mount_point] not in existing_blocks \
           or blk_uuids.get(existing_mounts[mount_point]) != config_by_path[mount_point]:
-        # either the block is gone, or the mount point is mounted with a wrong block
-        umount(existing_mounts[mount_point], mount_point)
+          # either the block is gone, or the mount point is mounted with a wrong block
+          umount(existing_mounts[mount_point], mount_point)
 
     for block_device in existing_blocks:
       log.debug("Examining block device %s", block_device)

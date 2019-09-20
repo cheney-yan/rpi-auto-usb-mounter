@@ -49,7 +49,8 @@ def collect_blks():
   for device in devices['blockdevices']:
     for child in device.get('children', []):
       if child['mountpoint']:
-        result[child['name']] = child['mountpoint']
+        key = child['name'] if child['name'].startswith('/dev/') else '/dev/{}'.format(child['name'])
+        result[key] = child['mountpoint']
   return result
 
 

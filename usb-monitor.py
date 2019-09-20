@@ -94,7 +94,7 @@ def auto():
   monitor.filter_by(subsystem='usb')
   monitor.start()
   config_by_uuid = dict((x['UUID'], x['mount_point']) for x in mount_config)
-  config_by_path = dict(( x['mount_point'], x['UUID']) for x in mount_config)
+  config_by_path = dict((x['mount_point'], x['UUID']) for x in mount_config)
 
   for device in iter(monitor.poll, None):
     sleep(1.0)  # use queue to minimize sleep

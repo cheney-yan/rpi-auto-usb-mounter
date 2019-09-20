@@ -65,7 +65,7 @@ def get_block_uuid():
     device = tokens[0][5:]
     m = uuid_pattern.search(tokens[1])
     if m:
-      uuid = (block[m.start(): m.end()].split('"')[1])
+      uuid = (tokens[1][m.start(): m.end()].split('"')[1])
       result[device] = uuid
   return result
 

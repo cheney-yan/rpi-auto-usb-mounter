@@ -82,7 +82,9 @@ def auto():
     partitions = collect_blks().keys()
     mounts = collect_mounts()
     for path, block in paths.items():
+      log.debug("Checking device: %s, path: %s", block, path)
       if path in mounts and block not in partitions: # currently registered as mounted, but device is gone
+        log.info("Umounting device %s from path %s, seems the device is gone.", block, path)
         umount(block, path)
 
     block_info = sh.blkid().stdout.decode('utf-8')

@@ -1,0 +1,14 @@
+*.pyc
+*.DS_Store
+venv/
+src/
+stacker/
+lib/
+bin/
+include/
+venv-private/
+env/*-k.env
+
+\.idea/
+.vscode/
+.history

@@ -53,7 +53,7 @@ def collect_blks():
   return result
 
 
-def collect_mounts():
+def collect_existing_mounts():
   """
   return a dictionary of currently registered info.
   Key: mount path.
@@ -80,19 +80,18 @@ def auto():
 
   for device in iter(monitor.poll, None):
     sleep(1.0)  # use queue to minimize sleep
-    devices = json.loads(sh.lsblk('-J').stdout)
-    partitions = collect_blks().keys()
-    mounts = collect_mounts()
+    existing_blocks = collect_blks().keys()
+    existing_mounts = collect_existing_mounts()
     for path in paths.keys():
-      if path in mounts:
-        log.debug("Checking device: %s, path: %s", mounts[path], path)
-        if path in mounts and mounts[path] not in partitions:  # currently registered as mounted, but device is gone
-          log.info("Umounting device %s from path %s, seems the device is gone.", mounts[path], path)
-          umount(mounts[path], path)
+      if path in existing_mounts:
+        log.debug("Checking device: %s, path: %s", existing_mounts[path], path)
+        if path in existing_mounts and existing_mounts[path] not in existing_blocks:  # currently registered as mounted, but device is gone
+          log.info("Umounting device %s from path %s, seems the device is gone.", existing_mounts[path], path)
+          umount(existing_mounts[path], path)
 
     block_info = sh.blkid().stdout.decode('utf-8')
     for block in block_info.splitlines():
-      for p in partitions:
+      for p in existing_blocks:
         device = '/dev/{device}'.format(device=p)
         if block.strip().startswith('{}:'.format(device)):
           m = uuid_pattern.search(block)

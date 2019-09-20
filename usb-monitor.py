@@ -42,7 +42,6 @@ def umount(device, mount_point):
   if matched:
     sh.sudo.umount(mount_point)
 
-
 def collect_blks():
   result = {}
   devices = json.loads(sh.lsblk('-J').stdout)
@@ -54,7 +53,10 @@ def collect_blks():
 
 def collect_mounts():
   """
-  return a dictionary of currently registered info
+  return a dictionary of currently registered info.
+  Key: mount path.
+  Value: the block path
+  Note when a block is removed from system, the mount path is still registered
   """
   result = {}
   for mount in sh.mount().stdout.decode('utf-8').splitlines():
@@ -72,12 +74,17 @@ def auto():
   monitor.filter_by(subsystem='usb')
   monitor.start()
   cfg = dict((x['UUID'], x['mount_point']) for x in mount_config)
+  paths = dict((x['UUID'], x['mount_point']) for x in mount_config)
 
   for device in iter(monitor.poll, None):
     sleep(1.0)  # use queue to minimize sleep
     devices = json.loads(sh.lsblk('-J').stdout)
     partitions = collect_blks().keys()
     mounts = collect_mounts()
+    for path, block in paths.items():
+      if path in mounts and block not in partitions: # currently registered as mounted, but device is gone
+        umount(block, path)
+
     block_info = sh.blkid().stdout.decode('utf-8')
     for block in block_info.splitlines():
       for p in partitions:

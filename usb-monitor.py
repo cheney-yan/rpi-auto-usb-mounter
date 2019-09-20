@@ -102,13 +102,14 @@ def auto():
     log.debug('Block info: %s', existing_blocks)
     existing_mounts = collect_existing_mounts()
     log.debug("Mounts info:%s", existing_mounts)
-    for path in config_by_path.keys():
-      if path not in existing_mounts:
-        log.debug("Checking device: %s, path: %s", existing_mounts[path], path)
-        if path in existing_mounts and existing_mounts[path] not in existing_blocks:  # currently registered as mounted, but device is gone
-          log.info("Umounting device %s from path %s, seems the device is gone.", existing_mounts[path], path)
-          umount(existing_mounts[path], path)
     blk_uuids = get_block_uuid()
+    log.debug("Block uuid:%s", blk_uuids)
+
+    for mount_point in config_by_path.keys():
+      if mount_point in existing_mounts and existing_mounts[mount_point] not in existing_blocks \
+        or blk_uuids.get(existing_mounts[mount_point]) != config_by_path[mount_point]:
+        # either the block is gone, or the mount point is mounted with a wrong block
+        umount(existing_mounts[mount_point], mount_point)
 
     for block_device in existing_blocks:
       log.debug("Examining block device %s", block_device)

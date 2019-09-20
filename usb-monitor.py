@@ -43,13 +43,24 @@ def umount(device, mount_point):
     sh.sudo.umount(mount_point)
 
 
-def collect_mounted():
+def collect_blks():
   result = {}
   devices = json.loads(sh.lsblk('-J').stdout)
   for device in devices['blockdevices']:
     for child in device.get('children', []):
       if child['mountpoint']:
         result[child['name']] = child['mountpoint']
+  return result
+
+def collect_mounts():
+  """
+  return a dictionary of currently registered info
+  """
+  result = {}
+  for mount in sh.mount().stdout.decode('utf-8').splitlines():
+    tokens = mount.split()
+    if tokens[1] == 'on':
+      result[tokens[2]] = tokens[0]
   return result
 
 
@@ -63,13 +74,10 @@ def auto():
   cfg = dict((x['UUID'], x['mount_point']) for x in mount_config)
 
   for device in iter(monitor.poll, None):
-    partitions = []
     sleep(1.0)  # use queue to minimize sleep
     devices = json.loads(sh.lsblk('-J').stdout)
-    for device in devices['blockdevices']:
-      for child in device.get('children', []):
-        if not child['mountpoint']:
-          partitions.append(child['name'])
+    partitions = collect_blks().keys()
+    mounts = collect_mounts()
     block_info = sh.blkid().stdout.decode('utf-8')
     for block in block_info.splitlines():
       for p in partitions:

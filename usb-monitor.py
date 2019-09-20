@@ -106,8 +106,9 @@ def auto():
     log.debug("Block uuid:%s", blk_uuids)
 
     for mount_point in config_by_path.keys():
-      if mount_point in existing_mounts and existing_mounts[mount_point] not in existing_blocks \
-        or blk_uuids.get(existing_mounts[mount_point]) != config_by_path[mount_point]:
+      if mount_point in existing_mounts:
+        if existing_mounts[mount_point] not in existing_blocks \
+          or blk_uuids.get(existing_mounts[mount_point]) != config_by_path[mount_point]:
         # either the block is gone, or the mount point is mounted with a wrong block
         umount(existing_mounts[mount_point], mount_point)
 

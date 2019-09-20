@@ -71,7 +71,7 @@ def collect_existing_mounts():
   """
   return a dictionary of currently registered info.
   Key: mount path.
-  Value: the block path
+  Value: the block device path
   Note when a block is removed from system, the mount path is still registered
   """
   result = {}
@@ -102,18 +102,14 @@ def auto():
         if path in existing_mounts and existing_mounts[path] not in existing_blocks:  # currently registered as mounted, but device is gone
           log.info("Umounting device %s from path %s, seems the device is gone.", existing_mounts[path], path)
           umount(existing_mounts[path], path)
+    blk_uuids = get_block_uuid()
 
-    block_info = sh.blkid().stdout.decode('utf-8')
-    for block in block_info.splitlines():
-      for p in existing_blocks:
-        device = '/dev/{device}'.format(device=p)
-        if block.strip().startswith('{}:'.format(device)):
-          m = uuid_pattern.search(block)
-          if m:
-            uuid = (block[m.start(): m.end()].split('"')[1])
-            if uuid in config_by_uuid:
-              log.info("Mounting device %s, with UUID %s on path %s", device, uuid, config_by_uuid.get(uuid))
-              mount(device, config_by_uuid.get(uuid))
+    for block_device in existing_blocks:
+      log.debug("Examining block device %s", block_device)
+      if block_device not in existing_blocks.values():
+        uuid = blk_uuids[block_device]
+        log.info("Mounting device %s, with UUID %s on path %s", device, uuid, config_by_uuid.get(uuid))
+        mount(device, config_by_uuid.get(uuid))
 
 
 if __name__ == '__main__':

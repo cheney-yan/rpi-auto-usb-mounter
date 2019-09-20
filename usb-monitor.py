@@ -94,7 +94,7 @@ def auto():
 
   for device in iter(monitor.poll, None):
     sleep(1.0)  # use queue to minimize sleep
-    existing_blocks = collect_blks().keys()
+    existing_blocks = collect_blks()
     existing_mounts = collect_existing_mounts()
     for path in config_by_path.keys():
       if path in existing_mounts:

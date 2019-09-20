@@ -22,9 +22,9 @@ click_log.basic_config(log)
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cli(ctx):
-  """Slack pusher"""
+  """USB disk mounter"""
   if not ctx.invoked_subcommand:
-    main()
+    auto()
 
 def mount(device, mount_point):
   sh.sudo.mount(device, mount_point)
@@ -39,12 +39,16 @@ def umount(device, mount_point):
   if matched:
     sh.sudo.umount(mount_point)
 
-def main():
+@cli.command('auto')
+@click_log.simple_verbosity_option(log)
+
+def auto():
   context = pyudev.Context()
   monitor = pyudev.Monitor.from_netlink(context)
   monitor.filter_by(subsystem='usb')
   monitor.start()
   cfg = dict((x['UUID'], x['mount_point']) for x in mount_config)
+
   for device in iter(monitor.poll, None):
     partitions = []
     sleep(1.0)  # use queue to minimize sleep
@@ -62,6 +66,7 @@ def main():
           if m:
             uuid = (block[m.start(): m.end()].split('"')[1])
             if uuid in cfg:
+              log.info("Mounting device %s, with UUID %s on path %s", device, uuid, cfg.get(uuid))
               mount(device, cfg.get(uuid))
 
 

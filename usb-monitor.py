@@ -7,7 +7,8 @@ import json
 from time import sleep
 import re
 import click
-import logging, click_log
+import logging
+import click_log
 uuid_pattern = re.compile('UUID="[^"]+"')
 mount_config = [
     {
@@ -26,22 +27,34 @@ def cli(ctx):
   if not ctx.invoked_subcommand:
     auto()
 
+
 def mount(device, mount_point):
   sh.sudo.mount(device, mount_point)
 
+
 def umount(device, mount_point):
-  pattern=re.compile(f'^${device}\W+on\W+mount_point\W+.*$')
+  pattern = re.compile(f'^${device}\W+on\W+mount_point\W+.*$')
   matched = [
-    mount
-    for mount in sh.mount().stdout.decode('utf-8').splitlines()
-    if re.match(pattern, mount)
+      mount
+      for mount in sh.mount().stdout.decode('utf-8').splitlines()
+      if re.match(pattern, mount)
   ]
   if matched:
     sh.sudo.umount(mount_point)
 
+
+def collect_mounted():
+  result = {}
+  devices = json.loads(sh.lsblk('-J').stdout)
+  for device in devices['blockdevices']:
+    for child in device.get('children', []):
+      if child['mountpoint']:
+        result[child['name']] = child['mountpoint']
+  return result
+
+
 @cli.command('auto')
 @click_log.simple_verbosity_option(log)
-
 def auto():
   context = pyudev.Context()
   monitor = pyudev.Monitor.from_netlink(context)

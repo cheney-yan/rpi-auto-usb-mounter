@@ -53,6 +53,20 @@ def collect_blks():
   return result
 
 
+def get_block_uuid():
+  result = {}
+  block_info = sh.blkid().stdout.decode('utf-8')
+  for block in block_info.splitlines():
+    tokens = block.split(':', 1)
+    if len(tokens) < 2:
+      continue
+    m = uuid_pattern.search(tokens[1])
+    if m:
+      uuid = (block[m.start(): m.end()].split('"')[1])
+      result[tokens[0]] = uuid
+  return result
+
+
 def collect_existing_mounts():
   """
   return a dictionary of currently registered info.

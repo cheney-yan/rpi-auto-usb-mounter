@@ -29,10 +29,14 @@ def cli(ctx):
 
 
 def mount(device, mount_point):
+  if not device.startswith('/dev/'):
+    device = '/dev/' + device
   sh.sudo.mount(device, mount_point)
 
 
 def umount(device, mount_point):
+  if not device.startswith('/dev/'):
+    device = '/dev/' + device
   pattern = re.compile(f'^${device}\W+on\W+mount_point\W+.*$')
   matched = [
       mount
@@ -110,6 +114,7 @@ def auto():
         if existing_mounts[mount_point] not in mounted_blocks \
           or blk_uuids.get(existing_mounts[mount_point]) != config_by_path[mount_point]:
           # either the block is gone, or the mount point is mounted with a wrong block
+          log.info("Unmounting device %s, on path %s", existing_mounts[mount_point], mount_point)
           umount(existing_mounts[mount_point], mount_point)
 
     for block_device in blk_uuids:

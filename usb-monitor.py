@@ -6,13 +6,25 @@ import sh
 import json
 from time import sleep
 import re
-
+import click
+import logging, click_log
 uuid_pattern = re.compile('UUID="[^"]+"')
 mount_config = [
     {
         "UUID": '67E3-17ED', "mount_point": "/data2"
     }
 ]
+
+log = logging.getLogger(__name__)
+click_log.basic_config(log)
+
+
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
+  """Slack pusher"""
+  if not ctx.invoked_subcommand:
+    main()
 
 def mount(device, mount_point):
   sh.sudo.mount(device, mount_point)
@@ -54,4 +66,4 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  cli()

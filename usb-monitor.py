@@ -49,8 +49,7 @@ def collect_blks():
   for device in devices['blockdevices']:
     for child in device.get('children', []):
       if child['mountpoint']:
-        key = child['name'] if child['name'].startswith('/dev/') else '/dev/{}'.format(child['name'])
-        result[key] = child['mountpoint']
+        result[child['name']] = child['mountpoint']
   return result
 
 
@@ -78,8 +77,9 @@ def collect_existing_mounts():
   result = {}
   for mount in sh.mount().stdout.decode('utf-8').splitlines():
     tokens = mount.split()
-    if tokens[1] == 'on':
-      result[tokens[2]] = tokens[0]
+    if tokens[1] == 'on' and tokens[0].startswith('/dev/'):
+      device = tokens[0][5:]
+      result[tokens[2]] = device
   return result
 
 

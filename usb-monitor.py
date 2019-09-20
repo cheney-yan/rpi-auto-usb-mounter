@@ -75,14 +75,14 @@ def auto():
   monitor = pyudev.Monitor.from_netlink(context)
   monitor.filter_by(subsystem='usb')
   monitor.start()
-  cfg = dict((x['UUID'], x['mount_point']) for x in mount_config)
-  paths = dict((x['UUID'], x['mount_point']) for x in mount_config)
+  config_by_uuid = dict((x['UUID'], x['mount_point']) for x in mount_config)
+  config_by_path = dict((x['UUID'], x['mount_point']) for x in mount_config)
 
   for device in iter(monitor.poll, None):
     sleep(1.0)  # use queue to minimize sleep
     existing_blocks = collect_blks().keys()
     existing_mounts = collect_existing_mounts()
-    for path in paths.keys():
+    for path in config_by_path.keys():
       if path in existing_mounts:
         log.debug("Checking device: %s, path: %s", existing_mounts[path], path)
         if path in existing_mounts and existing_mounts[path] not in existing_blocks:  # currently registered as mounted, but device is gone
@@ -97,9 +97,9 @@ def auto():
           m = uuid_pattern.search(block)
           if m:
             uuid = (block[m.start(): m.end()].split('"')[1])
-            if uuid in cfg:
-              log.info("Mounting device %s, with UUID %s on path %s", device, uuid, cfg.get(uuid))
-              mount(device, cfg.get(uuid))
+            if uuid in config_by_uuid:
+              log.info("Mounting device %s, with UUID %s on path %s", device, uuid, config_by_uuid.get(uuid))
+              mount(device, config_by_uuid.get(uuid))
 
 
 if __name__ == '__main__':

@@ -37,14 +37,7 @@ def mount(device, mount_point):
 def umount(device, mount_point):
   if not device.startswith('/dev/'):
     device = '/dev/' + device
-  pattern = re.compile(f'^${device}\W+on\W+mount_point\W+.*$')
-  matched = [
-      mount
-      for mount in sh.mount().stdout.decode('utf-8').splitlines()
-      if re.match(pattern, mount)
-  ]
-  if matched:
-    sh.sudo.umount(mount_point)
+  sh.sudo.umount(mount_point)
 
 
 def collect_mounted_blocks():

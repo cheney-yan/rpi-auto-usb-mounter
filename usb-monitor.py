@@ -60,10 +60,13 @@ def get_block_uuid():
     tokens = block.split(':', 1)
     if len(tokens) < 2:
       continue
+    if not tokens[0].startswith('/dev/'):
+      continue
+    device = tokens[0][5:]
     m = uuid_pattern.search(tokens[1])
     if m:
       uuid = (block[m.start(): m.end()].split('"')[1])
-      result[tokens[0]] = uuid
+      result[device] = uuid
   return result
 
 

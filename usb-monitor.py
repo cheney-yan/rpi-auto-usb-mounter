@@ -42,6 +42,7 @@ def umount(device, mount_point):
   if matched:
     sh.sudo.umount(mount_point)
 
+
 def collect_blks():
   result = {}
   devices = json.loads(sh.lsblk('-J').stdout)
@@ -50,6 +51,7 @@ def collect_blks():
       if child['mountpoint']:
         result[child['name']] = child['mountpoint']
   return result
+
 
 def collect_mounts():
   """
@@ -81,11 +83,12 @@ def auto():
     devices = json.loads(sh.lsblk('-J').stdout)
     partitions = collect_blks().keys()
     mounts = collect_mounts()
-    for path, block in paths.items():
-      log.debug("Checking device: %s, path: %s", block, path)
-      if path in mounts and block not in partitions: # currently registered as mounted, but device is gone
-        log.info("Umounting device %s from path %s, seems the device is gone.", block, path)
-        umount(block, path)
+    for path in paths.keys():
+      if path in mounts:
+        log.debug("Checking device: %s, path: %s", mounts[path], path)
+        if path in mounts and mounts[path] not in partitions:  # currently registered as mounted, but device is gone
+          log.info("Umounting device %s from path %s, seems the device is gone.", mounts[path], path)
+          umount(mounts[path], path)
 
     block_info = sh.blkid().stdout.decode('utf-8')
     for block in block_info.splitlines():

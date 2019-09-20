@@ -94,7 +94,7 @@ def auto():
   monitor.filter_by(subsystem='usb')
   monitor.start()
   config_by_uuid = dict((x['UUID'], x['mount_point']) for x in mount_config)
-  config_by_path = dict((x['UUID'], x['mount_point']) for x in mount_config)
+  config_by_path = dict(( x['mount_point'], x['UUID']) for x in mount_config)
 
   for device in iter(monitor.poll, None):
     sleep(1.0)  # use queue to minimize sleep
@@ -103,7 +103,7 @@ def auto():
     existing_mounts = collect_existing_mounts()
     log.debug("Mounts info:%s", existing_mounts)
     for path in config_by_path.keys():
-      if path in existing_mounts:
+      if path not in existing_mounts:
         log.debug("Checking device: %s, path: %s", existing_mounts[path], path)
         if path in existing_mounts and existing_mounts[path] not in existing_blocks:  # currently registered as mounted, but device is gone
           log.info("Umounting device %s from path %s, seems the device is gone.", existing_mounts[path], path)

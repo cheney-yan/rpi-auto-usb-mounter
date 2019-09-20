@@ -22,7 +22,7 @@ def umount(device, mount_point):
   matched = [
     mount
     for mount in sh.mount().stdout.decode('utf-8').splitlines()
-    if re.match(pattern, mount) 
+    if re.match(pattern, mount)
   ]
   if matched:
     sh.sudo.umount(mount_point)
@@ -51,7 +51,7 @@ def main():
             uuid = (block[m.start(): m.end()].split('"')[1])
             if uuid in cfg:
               mount(device, cfg.get(uuid))
-    
+
 
 if __name__ == '__main__':
   main()

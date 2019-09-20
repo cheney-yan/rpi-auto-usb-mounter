@@ -43,7 +43,7 @@ def umount(device, mount_point):
     sh.sudo.umount(mount_point)
 
 
-def collect_blks():
+def collect_mounted_blocks():
   result = {}
   devices = json.loads(sh.lsblk('-J').stdout)
   for device in devices['blockdevices']:
@@ -98,8 +98,8 @@ def auto():
 
   for device in iter(monitor.poll, None):
     sleep(1.0)  # use queue to minimize sleep
-    existing_blocks = collect_blks()
-    log.debug('Block info: %s', existing_blocks)
+    mounted_blocks = collect_mounted_blocks()
+    log.debug('Block info: %s', mounted_blocks)
     existing_mounts = collect_existing_mounts()
     log.debug("Mounts info:%s", existing_mounts)
     blk_uuids = get_block_uuid()
@@ -107,17 +107,17 @@ def auto():
 
     for mount_point in config_by_path.keys():
       if mount_point in existing_mounts:
-        if existing_mounts[mount_point] not in existing_blocks \
+        if existing_mounts[mount_point] not in mounted_blocks \
           or blk_uuids.get(existing_mounts[mount_point]) != config_by_path[mount_point]:
           # either the block is gone, or the mount point is mounted with a wrong block
           umount(existing_mounts[mount_point], mount_point)
 
-    for block_device in existing_blocks:
-      log.debug("Examining block device %s", block_device)
-      if block_device not in existing_blocks.values():
+    for block_device in blk_uuids:
+      if block_device not in mounted_blocks:
         uuid = blk_uuids[block_device]
-        log.info("Mounting device %s, with UUID %s on path %s", device, uuid, config_by_uuid.get(uuid))
-        mount(device, config_by_uuid.get(uuid))
+        if uuid in config_by_uuid:
+          log.info("Mounting device %s, with UUID %s on path %s", block_device, uuid, config_by_uuid.get(uuid))
+          mount(block_device, config_by_uuid.get(uuid))
 
 
 if __name__ == '__main__':

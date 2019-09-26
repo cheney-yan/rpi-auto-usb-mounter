@@ -9,12 +9,10 @@ import re
 import click
 import logging
 import click_log
+import toml
+import os
+
 uuid_pattern = re.compile('UUID="[^"]+"')
-mount_config = [
-    {
-        "UUID": '67E3-17ED', "mount_point": "/data2"
-    }
-]
 
 log = logging.getLogger(__name__)
 click_log.basic_config(log)
@@ -23,21 +21,26 @@ click_log.basic_config(log)
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cli(ctx):
-  """USB disk mounter"""
+  """USB disk automatic mounter and umounter"""
   if not ctx.invoked_subcommand:
     auto()
 
 
-def mount(device, mount_point):
+def mount(device, mount_point, readonly=False):
   if not device.startswith('/dev/'):
     device = '/dev/' + device
   sh.sudo.mount(device, mount_point)
+  if readonly:
+    sh.sudo.hdparm('-r1', device) 
+
+def sync():
+  sh.sudo.sync() 
 
 
 def umount(device, mount_point):
   if not device.startswith('/dev/'):
     device = '/dev/' + device
-  sh.sudo.umount(mount_point)
+  sh.sudo.umount('-lf', mount_point)
 
 
 def collect_mounted_blocks():
@@ -84,24 +87,26 @@ def collect_existing_mounts():
 
 
 @cli.command('auto')
+@click.option('--config', '-c', default=os.path.join(os.path.dirname(__file__), 'config.toml'), help='The config file')
 @click_log.simple_verbosity_option(log)
-def auto():
+def auto(config):
+  mount_config = toml.load(open(config))['map']
   context = pyudev.Context()
   monitor = pyudev.Monitor.from_netlink(context)
   monitor.filter_by(subsystem='usb')
   monitor.start()
   config_by_uuid = dict((x['UUID'], x['mount_point']) for x in mount_config)
+  config_readonly = dict((x['UUID'], x['readonly']) for x in mount_config)
   config_by_path = dict((x['mount_point'], x['UUID']) for x in mount_config)
-
   for device in iter(monitor.poll, None):
-    sleep(1.0)  # use queue to minimize sleep
+    sync()
+    sleep(2.0)  # use queue to minimize sleep
     mounted_blocks = collect_mounted_blocks()
     log.debug('Block info: %s', mounted_blocks)
     existing_mounts = collect_existing_mounts()
     log.debug("Mounts info:%s", existing_mounts)
     blk_uuids = get_block_uuid()
     log.debug("Block uuid:%s", blk_uuids)
-
     for mount_point in config_by_path.keys():
       if mount_point in existing_mounts:
         if existing_mounts[mount_point] not in mounted_blocks \
@@ -115,7 +120,7 @@ def auto():
         uuid = blk_uuids[block_device]
         if uuid in config_by_uuid:
           log.info("Mounting device %s, with UUID %s on path %s", block_device, uuid, config_by_uuid.get(uuid))
-          mount(block_device, config_by_uuid.get(uuid))
+          mount(block_device, config_by_uuid.get(uuid), config_readonly.get(uuid))
 
 
 if __name__ == '__main__':

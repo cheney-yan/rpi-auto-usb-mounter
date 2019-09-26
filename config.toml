@@ -1,0 +1,8 @@
+# [[map]]
+# UUID = "67E3-17ED"
+# mount_point = "/data2"
+# readonly = true
+[[map]]
+UUID = "5D35-AA1B"
+mount_point = "/data3"
+readonly = true

@@ -1,0 +1,11 @@
+[Unit]
+Description=USB auto mounter
+After=multi-user.target
+ 
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/rpi-auto-usb-mounter/usb-monitor.py auto -c /opt/rpi-auto-usb-mounter/config.toml
+Restart=on-abort
+ 
+[Install]
+WantedBy=multi-user.target

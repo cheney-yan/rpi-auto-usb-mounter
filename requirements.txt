@@ -2,3 +2,4 @@ pyudev
 sh
 click
 click_log
+toml

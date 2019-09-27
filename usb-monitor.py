@@ -31,21 +31,27 @@ def exec_actions(actions):
     cmd(action['params'])
 
 def mount(device, mount_point, readonly=False, actions=()):
-  if not device.startswith('/dev/'):
-    device = '/dev/' + device
-  sh.sudo.mount(device, mount_point)
-  if readonly:
-    sh.sudo.hdparm('-r1', device) 
-  exec_actions(actions)
+  try:
+    if not device.startswith('/dev/'):
+      device = '/dev/' + device
+    sh.sudo.mount(device, mount_point)
+    if readonly:
+      sh.sudo.hdparm('-r1', device) 
+    exec_actions(actions)
+  except Exception as e:
+    log.warning("Mount failed, keep going. %s", e)
 
 def sync():
   sh.sudo.sync()
 
 
 def umount(device, mount_point, actions=()):
-  if not device.startswith('/dev/'):
-    device = '/dev/' + device
-  sh.sudo.umount('-lf', mount_point)
+  try:
+    if not device.startswith('/dev/'):
+      device = '/dev/' + device
+    sh.sudo.umount('-lf', mount_point)
+  except Exception as e:
+    log.warning("Umount failed, keep going. %s", e)
 
 
 def collect_mounted_blocks():

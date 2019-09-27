@@ -6,3 +6,13 @@
 UUID = "5D35-AA1B"
 mount_point = "/data3"
 readonly = true
+
+[[actions.mount]]
+cmd='sudo'
+params=["docker", "restart", "rpi-samba"]
+[[actions.mount]]
+cmd='sudo'
+params=["sync"]
+[[actions.umount]]
+
+

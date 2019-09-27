@@ -25,19 +25,24 @@ def cli(ctx):
   if not ctx.invoked_subcommand:
     auto()
 
+def exec_actions(actions):
+  for action in actions:
+    cmd = sh.Command(action['cmd'])
+    cmd(action['params'])
 
-def mount(device, mount_point, readonly=False):
+def mount(device, mount_point, readonly=False, actions=()):
   if not device.startswith('/dev/'):
     device = '/dev/' + device
   sh.sudo.mount(device, mount_point)
   if readonly:
     sh.sudo.hdparm('-r1', device) 
-
+  exec_actions(actions)
+  
 def sync():
   sh.sudo.sync() 
 
 
-def umount(device, mount_point):
+def umount(device, mount_point, actions=()):
   if not device.startswith('/dev/'):
     device = '/dev/' + device
   sh.sudo.umount('-lf', mount_point)
@@ -98,6 +103,8 @@ def auto(config):
   config_by_uuid = dict((x['UUID'], x['mount_point']) for x in mount_config)
   config_readonly = dict((x['UUID'], x['readonly']) for x in mount_config)
   config_by_path = dict((x['mount_point'], x['UUID']) for x in mount_config)
+  mount_actions = mount_config.get('actions', {}).get('mount',[])
+  umount_actions = mount_config.get('actions', {}).get('umount',[])
   for device in iter(monitor.poll, None):
     sync()
     sleep(2.0)  # use queue to minimize sleep
@@ -113,14 +120,14 @@ def auto(config):
           or blk_uuids.get(existing_mounts[mount_point]) != config_by_path[mount_point]:
           # either the block is gone, or the mount point is mounted with a wrong block
           log.info("Unmounting device %s, on path %s", existing_mounts[mount_point], mount_point)
-          umount(existing_mounts[mount_point], mount_point)
+          umount(existing_mounts[mount_point], mount_point, umount_actions)
 
     for block_device in blk_uuids:
       if block_device not in mounted_blocks:
         uuid = blk_uuids[block_device]
         if uuid in config_by_uuid:
           log.info("Mounting device %s, with UUID %s on path %s", block_device, uuid, config_by_uuid.get(uuid))
-          mount(block_device, config_by_uuid.get(uuid), config_readonly.get(uuid))
+          mount(block_device, config_by_uuid.get(uuid), config_readonly.get(uuid), mount_actions)
 
 
 if __name__ == '__main__':

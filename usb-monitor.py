@@ -37,9 +37,9 @@ def mount(device, mount_point, readonly=False, actions=()):
   if readonly:
     sh.sudo.hdparm('-r1', device) 
   exec_actions(actions)
-  
+
 def sync():
-  sh.sudo.sync() 
+  sh.sudo.sync()
 
 
 def umount(device, mount_point, actions=()):

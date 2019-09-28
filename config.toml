@@ -14,6 +14,9 @@ mount_point = "/mount/Book"
 UUID = "825294B65294B101"
 mount_point = "/mount/replaceable"
 # readonly = true
+[[map]]
+UUID = "c0826a08-73c8-4b69-a14b-a40e10ceb0f0"
+mount_point = "/mount/diamond"
 
 [[actions.mount]]
 cmd='sudo'

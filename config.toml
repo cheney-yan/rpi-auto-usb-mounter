@@ -7,8 +7,8 @@ UUID = "5D35-AA1B"
 mount_point = "/data3"
 # readonly = true
 [[map]]
-UUID = "5D82-28DD"
-mount_point = "/mount/Book"
+UUID = "66D060BED0609659"
+mount_point = "/data2"
 # readonly = true
 [[map]]
 UUID = "825294B65294B101"

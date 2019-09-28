@@ -101,16 +101,17 @@ def collect_existing_mounts():
 @click.option('--config', '-c', default=os.path.join(os.path.dirname(__file__), 'config.toml'), help='The config file')
 @click_log.simple_verbosity_option(log)
 def auto(config):
-  mount_config = toml.load(open(config))['map']
+  config_info = toml.load(open(config))
+  mount_map = config_info['map']
   context = pyudev.Context()
   monitor = pyudev.Monitor.from_netlink(context)
   monitor.filter_by(subsystem='usb')
   monitor.start()
-  config_by_uuid = dict((x['UUID'], x['mount_point']) for x in mount_config)
-  config_readonly = dict((x['UUID'], x['readonly']) for x in mount_config)
-  config_by_path = dict((x['mount_point'], x['UUID']) for x in mount_config)
-  mount_actions = mount_config.get('actions', {}).get('mount',[])
-  umount_actions = mount_config.get('actions', {}).get('umount',[])
+  config_by_uuid = dict((x['UUID'], x['mount_point']) for x in mount_map)
+  config_readonly = dict((x['UUID'], x['readonly']) for x in mount_map)
+  config_by_path = dict((x['mount_point'], x['UUID']) for x in mount_map)
+  mount_actions = config_info.get('actions', {}).get('mount',[])
+  umount_actions = config_info.get('actions', {}).get('umount',[])
   for device in iter(monitor.poll, None):
     sync()
     sleep(2.0)  # use queue to minimize sleep

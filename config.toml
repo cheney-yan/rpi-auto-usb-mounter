@@ -5,15 +5,15 @@
 [[map]]
 UUID = "5D35-AA1B"
 mount_point = "/data3"
-readonly = true
+# readonly = true
 [[map]]
 UUID = "5D82-28DD"
 mount_point = "/mount/Book"
-readonly = true
+# readonly = true
 [[map]]
 UUID = "825294B65294B101"
 mount_point = "/mount/replaceable"
-readonly = true
+# readonly = true
 
 [[actions.mount]]
 cmd='sudo'

@@ -108,7 +108,7 @@ def auto(config):
   monitor.filter_by(subsystem='usb')
   monitor.start()
   config_by_uuid = dict((x['UUID'], x['mount_point']) for x in mount_map)
-  config_readonly = dict((x['UUID'], x['readonly']) for x in mount_map)
+  config_readonly = dict((x['UUID'], x.get('readonly', false)) for x in mount_map)
   config_by_path = dict((x['mount_point'], x['UUID']) for x in mount_map)
   mount_actions = config_info.get('actions', {}).get('mount',[])
   umount_actions = config_info.get('actions', {}).get('umount',[])
